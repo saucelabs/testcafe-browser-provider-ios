@@ -60,7 +60,7 @@ module.exports = {
         await exec(`xcrun simctl openurl ${device.udid} ${pageUrl}`);
         return; // Success, exit function.
       } catch (error) {
-
+        debug(`Error opening URL: ${error}`);
         if (attempt >= maxRetries) {
           throw new Error(
             `Failed to open URL on simulator after ${maxRetries} attempts.`,
@@ -73,6 +73,7 @@ module.exports = {
           await idbCompanion.shutdown(device.udid);
           await idbCompanion.boot(device.udid, timeout * 1000);
         } catch (recoveryError) {
+          debug(`Recovery error: ${recoveryError}`);
           throw new Error('Simulator recovery failed. Aborting operation.');
         }
 
