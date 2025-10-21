@@ -1,9 +1,9 @@
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
-const debug = require('debug')('testcafe:browser-provider-ios');
-const deviceList = require('./device_list.js');
-const idbCompanion = require('./idb_companion.js');
-const process = require('process');
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
+const debug = require("debug")("testcafe:browser-provider-ios");
+const deviceList = require("./device_list.js");
+const idbCompanion = require("./idb_companion.js");
+const process = require("process");
 
 /**
  * A utility function to introduce a delay.
@@ -20,7 +20,7 @@ module.exports = {
   availableDevices: [],
 
   _browserNameToDevice(browserName) {
-    const [device, version = 'any'] = browserName.split(':');
+    const [device, version = "any"] = browserName.split(":");
 
     return deviceList.find(this.availableDevices, {
       name: device,
@@ -33,13 +33,13 @@ module.exports = {
     const device = this._browserNameToDevice(browserName);
 
     if (device === null)
-      throw new Error('Could not find a valid iOS device to test on');
+      throw new Error("Could not find a valid iOS device to test on");
 
     this.currentBrowsers[id] = device;
 
     // If the device is not Shutdown we don't know what state it's in - shut it down and reboot it
-    if (device.state !== 'Shutdown') {
-      debug('Forcing shutdown of device before test');
+    if (device.state !== "Shutdown") {
+      debug("Forcing shutdown of device before test");
       await idbCompanion.shutdown(device.udid);
     }
 
@@ -74,7 +74,7 @@ module.exports = {
           await idbCompanion.boot(device.udid, timeout * 1000);
         } catch (recoveryError) {
           debug(`Recovery error: ${recoveryError}`);
-          throw new Error('Simulator recovery failed. Aborting operation.');
+          throw new Error("Simulator recovery failed. Aborting operation.");
         }
 
         await delay(retryDelay);
@@ -83,16 +83,16 @@ module.exports = {
   },
 
   async closeBrowser(id) {
-    const skipShutdown = process.env.IOS_SKIP_SHUTDOWN || '';
+    const skipShutdown = process.env.IOS_SKIP_SHUTDOWN || "";
 
-    if (skipShutdown !== '') return;
+    if (skipShutdown !== "") return;
 
     await idbCompanion.shutdown(this.currentBrowsers[id].udid);
   },
 
   // Optional - implement methods you need, remove other methods
   async init() {
-    debug('Initializing plugin');
+    debug("Initializing plugin");
     var rawDevices = await idbCompanion.list();
 
     this.availableDevices = deviceList.parse(rawDevices);
@@ -118,6 +118,6 @@ module.exports = {
   async takeScreenshot(id, screenshotPath) {
     var command = `xcrun simctl io ${this.currentBrowsers[id].udid} screenshot '${screenshotPath}'`;
 
-    await exec(command, { stdio: 'ignore' });
+    await exec(command, { stdio: "ignore" });
   },
 };
