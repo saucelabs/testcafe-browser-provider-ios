@@ -9,7 +9,7 @@ const process = require("process");
  * A utility function to introduce a delay.
  * @param ms - The delay in milliseconds.
  */
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
   // Multiple browsers support
