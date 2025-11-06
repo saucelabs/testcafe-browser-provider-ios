@@ -64,8 +64,12 @@ module.exports = {
       } catch (error) {
         debug(`Error opening URL: ${error}`);
         if (attempt >= maxRetries) {
+          if (error instanceof Error) {
+            error.message = `Failed to open URL on simulator after ${maxRetries} attempts. Last error: ${error.message}`;
+            throw error;
+          }
           throw new Error(
-            `Failed to open URL on simulator after ${maxRetries} attempts. Last error: ${error instanceof Error ? error.message : String(error)}`,
+            `Failed to open URL on simulator after ${maxRetries} attempts. Last error: ${String(error)}`,
           );
         }
 
