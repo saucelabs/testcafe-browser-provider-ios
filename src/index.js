@@ -5,6 +5,12 @@ const deviceList = require("./device_list.js");
 const idbCompanion = require("./idb_companion.js");
 const process = require("process");
 
+/**
+ * A utility function to introduce a delay.
+ * @param ms - The delay in milliseconds.
+ */
+const delay = util.promisify(setTimeout);
+
 module.exports = {
   // Multiple browsers support
   isMultiBrowser: true,
@@ -24,7 +30,7 @@ module.exports = {
 
   async openBrowser(id, pageUrl, browserName) {
     debug(`Opening ${browserName}`);
-    var device = this._browserNameToDevice(browserName);
+    const device = this._browserNameToDevice(browserName);
 
     if (device === null)
       throw new Error("Could not find a valid iOS device to test on");
@@ -40,13 +46,46 @@ module.exports = {
     debug(`Booting device (${device.name} ${device.os} ${device.version})`);
     // Timeout in seconds
     const timeout = process.env.IOS_BOOT_TIMEOUT || 60;
-
     await idbCompanion.boot(device.udid, timeout * 1000);
 
-    debug(`Opening url: ${pageUrl}`);
-    await exec(`xcrun simctl openurl ${device.udid} ${pageUrl}`, {
-      stdio: "ignore",
-    });
+    const maxRetries = 5;
+    const retryDelay = 2000;
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      attempt++;
+
+      try {
+        // Try opening the URL on the device by udid
+        await exec(`xcrun simctl openurl ${device.udid} ${pageUrl}`);
+        return; // Success, exit function.
+      } catch (error) {
+        debug(`Error opening URL: ${error}`);
+        if (attempt >= maxRetries) {
+          if (error instanceof Error) {
+            error.message = `Failed to open URL on simulator after ${maxRetries} attempts. Last error: ${error.message}`;
+            throw error;
+          }
+          throw new Error(
+            `Failed to open URL on simulator after ${maxRetries} attempts. Last error: ${String(error)}`,
+          );
+        }
+
+        // Start recovery process
+        try {
+          // Use idbCompanion for consistency with the rest of the file
+          await idbCompanion.shutdown(device.udid);
+          await idbCompanion.boot(device.udid, timeout * 1000);
+        } catch (recoveryError) {
+          debug(`Recovery error: ${recoveryError}`);
+          throw new Error(
+            `Simulator recovery failed. Aborting operation. Error: ${recoveryError instanceof Error ? recoveryError.message : String(recoveryError)}`,
+          );
+        }
+
+        await delay(retryDelay);
+      }
+    }
   },
 
   async closeBrowser(id) {

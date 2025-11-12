@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import mocha from "eslint-plugin-mocha";
+import globals from "globals";
 
 export default [
   {
@@ -8,6 +9,9 @@ export default [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
     },
     rules: {
       ...prettier.rules,
