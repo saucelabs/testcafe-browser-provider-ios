@@ -43,7 +43,7 @@
     "mocha": "^10.8.2",
     "prettier": "^3.4.1",
     "pretty-quick": "^4.0.0",
-    "release-it": "^17.10.0",
+    "release-it": "^19.2.4",
     "sinon": "^19.0.2"
   }
 }
